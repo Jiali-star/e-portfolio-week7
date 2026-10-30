@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Let's Learn English! 🎈</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #ff6b9d;
+    --pink-deep: #e0578f;
+    --yellow: #ffd166;
+    --teal: #06d6a0;
+    --blue: #4cc9f0;
+    --purple: #b5838d;
+    --purple-deep: #9d4edd;
+    --bg: #fff5f7;
+    --card: #ffffff;
+    --text: #2d2d5a;
+    --muted: #7a7aa0;
+    --correct: #06d6a0;
+    --wrong: #ef476f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    font-family: 'Fredoka', 'ZCOOL KuaiLe', system-ui, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 10% 20%, #ffe0ec 0, transparent 50%),
+      radial-gradient(circle at 90% 80%, #e0f7ff 0, transparent 50%),
+      radial-gradient(circle at 50% 50%, #fff7db 0, transparent 60%),
+      var(--bg);
+    overflow-x: hidden;
+  }
+
+  /* Floating background bubbles */
+  .bubbles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    opacity: .35;
+    animation: float 12s ease-in-out infinite;
+  }
+  .bubble.b1 { width: 80px; height: 80px; background: var(--pink); left: 5%;  top: 10%; animation-delay: 0s; }
+  .bubble.b2 { width: 50px; height: 50px; background: var(--yellow); left: 85%; top: 15%; animation-delay: 2s; }
+  .bubble.b3 { width: 120px; height: 120px; background: var(--teal); left: 15%; top: 70%; animation-delay: 4s; }
+  .bubble.b4 { width: 60px; height: 60px; background: var(--blue); left: 75%; top: 75%; animation-delay: 1s; }
+  .bubble.b5 { width: 40px; height: 40px; background: var(--purple); left: 45%; top: 5%; animation-delay: 3s; }
+  .bubble.b6 { width: 90px; height: 90px; background: var(--yellow); left: 30%; top: 45%; animation-delay: 5s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-25px) rotate(10deg); }
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 520px;
+    width: 100%;
+    animation: pop-in .45s cubic-bezier(.2,1.2,.4,1);
+  }
+  .screen.is-active { display: flex; }
+
+  @keyframes pop-in {
+    0%   { opacity: 0; transform: scale(.85) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .title {
+    font-size: clamp(2rem, 6vw, 3rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--pink), var(--purple-deep));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle {
+    font-size: clamp(1rem, 2.8vw, 1.25rem);
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+
+  .mascot {
+    font-size: clamp(4rem, 14vw, 7rem);
+    margin-bottom: 24px;
+    animation: wiggle 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 6px 14px rgba(255,107,157,.35));
+  }
+  @keyframes wiggle {
+    0%,100% { transform: rotate(-4deg); }
+    50%     { transform: rotate(4deg); }
+  }
+
+  .btn {
+    display: inline-block;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+    padding: 18px 42px;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+    font-weight: 600;
+    border-radius: 999px;
+    color: white;
+    background: linear-gradient(135deg, var(--pink), var(--pink-deep));
+    box-shadow: 0 8px 0 var(--pink-deep), 0 14px 24px rgba(224,87,143,.35);
+    transition: transform .08s, box-shadow .08s;
+  }
+  .btn:hover  { transform: translateY(-2px); }
+  .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 var(--pink-deep), 0 8px 14px rgba(224,87,143,.35); }
+
+  /* Question screen */
+  .q-card {
+    background: var(--card);
+    border-radius: 32px;
+    padding: 28px 24px 32px;
+    box-shadow: 0 20px 40px rgba(0,0,0,.08), 0 4px 0 rgba(0,0,0,.04);
+    width: 100%;
+  }
+  .q-progress {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .q-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #eee;
+    transition: background .3s, transform .3s;
+  }
+  .q-dot.done  { background: var(--teal); transform: scale(1.1); }
+  .q-dot.current { background: var(--pink); transform: scale(1.25); box-shadow: 0 0 0 4px rgba(255,107,157,.2); }
+
+  .q-image-wrap {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1;
+    margin: 0 auto 20px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, #fff0f5, #e8faff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    box-shadow: inset 0 4px 12px rgba(0,0,0,.05);
+  }
+  .q-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 20px;
+  }
+
+  .q-prompt {
+    font-size: clamp(1.3rem, 4vw, 1.65rem);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .q-prompt span { color: var(--pink-deep); }
+
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 380px) { .options { grid-template-columns: 1fr; } }
+
+  .option {
+    position: relative;
+    border: 3px solid transparent;
+    background: #fafafa;
+    border-radius: 20px;
+    padding: 16px 12px;
+    font: inherit;
+    font-size: clamp(1rem, 3vw, 1.2rem);
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    transition: transform .1s, background .15s, border-color .15s;
+    box-shadow: 0 3px 0 #e6e6e6;
+  }
+  .option:hover:not(:disabled) {
+    background: #fff0f5;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 #ffd1dc;
+  }
+  .option:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #e6e6e6;
+  }
+  .option:disabled { cursor: default; }
+
+  .option.is-wrong {
+    border-color: var(--wrong);
+    background: #ffe8ec;
+    color: var(--wrong);
+    animation: shake .4s;
+  }
+  .option.is-correct {
+    border-color: var(--correct);
+    background: #e6faf1;
+    color: #038c6a;
+    animation: bounce .5s;
+  }
+
+  .option .mark {
+    position: absolute;
+    right: 10px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .option.is-wrong  .mark { color: var(--wrong); }
+  .option.is-correct .mark { color: var(--correct); }
+
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%     { transform: translateX(-8px); }
+    40%     { transform: translateX(8px); }
+    60%     { transform: translateX(-6px); }
+    80%     { transform: translateX(6px); }
+  }
+  @keyframes bounce {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.06); }
+  }
+
+  /* Victory */
+  .victory-emoji {
+    font-size: clamp(5rem, 16vw, 9rem);
+    margin-bottom: 16px;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+  .confetti {
+    position: fixed;
+    top: -20px;
+    font-size: 1.8rem;
+    animation: confetti-fall linear forwards;
+    z-index: 5;
+    pointer-events: none;
+  }
+  @keyframes confetti-fall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--blue), #219ebc);
+    box-shadow: 0 8px 0 #219ebc, 0 14px 24px rgba(33,158,188,.35);
+  }
+  .btn-secondary:active { box-shadow: 0 4px 0 #219ebc, 0 8px 14px rgba(33,158,188,.35); }
+
+  /* Confetti burst */
+  .stars {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="bubbles" aria-hidden="true">
+  <span class="bubble b1"></span>
+  <span class="bubble b2"></span>
+  <span class="bubble b3"></span>
+  <span class="bubble b4"></span>
+  <span class="bubble b5"></span>
+  <span class="bubble b6"></span>
+</div>
+
+<div class="app">
+
+  <!-- ===== HOME ===== -->
+  <section class="screen is-active" id="screen-home" aria-label="Home screen">
+    <div class="mascot" aria-hidden="true">🦊</div>
+    <h1 class="title">Let's learning English</h1>
+    <p class="subtitle">Hi friend! Tap start and let's play! 🎉</p>
+    <button class="btn" id="btn-start" type="button">Start ▶</button>
+  </section>
+
+  <!-- ===== QUESTION 1 ===== -->
+  <section class="screen" id="screen-q0" aria-label="Question 1">
+    <div class="q-card">
+      <div class="q-progress">
+        <span class="q-dot current"></span>
+        <span class="q-dot"></span>
+        <span class="q-dot"></span>
+      </div>
+      <div class="q-image-wrap">
+        <svg class="q-image" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Picture of an apple" role="img">
+          <!-- little left arm -->
+          <path d="M55 120 Q35 125 38 140 Q45 145 55 135 Z" fill="#ef4444"/>
+          <!-- little right arm -->
+          <path d="M145 120 Q165 125 162 140 Q155 145 145 135 Z" fill="#ef4444"/>
+          <!-- left foot -->
+          <ellipse cx="80" cy="178" rx="14" ry="8" fill="#c81e1e"/>
+          <!-- right foot -->
+          <ellipse cx="120" cy="178" rx="14" ry="8" fill="#c81e1e"/>
+          <!-- main apple body -->
+          <path d="M100 58 Q62 52 48 92 Q32 132 70 162 Q100 176 100 176 Q100 176 130 162 Q168 132 152 92 Q138 52 100 58 Z" fill="#ff5a5f" stroke="#d9363b" stroke-width="2"/>
+          <!-- glossy highlight -->
+          <ellipse cx="75" cy="95" rx="14" ry="24" fill="#fff" opacity=".55"/>
+          <ellipse cx="130" cy="80" rx="4" ry="7" fill="#fff" opacity=".7"/>
+          <!-- stem -->
+          <rect x="97" y="45" width="8" height="22" rx="4" fill="#7a4a22"/>
+          <!-- leaf -->
+          <path d="M107 42 Q138 18 165 32 Q148 58 118 52 Z" fill="#67c23a" stroke="#3d8b1f" stroke-width="1.5"/>
+          <path d="M115 44 Q132 32 152 36" stroke="#3d8b1f" stroke-width="1.2" fill="none"/>
+          <!-- left eye -->
+          <circle cx="82" cy="105" r="9" fill="#2c2c54"/>
+          <circle cx="84" cy="102" r="3.5" fill="#fff"/>
+          <circle cx="79" cy="108" r="1.5" fill="#fff"/>
+          <!-- right eye -->
+          <circle cx="128" cy="105" r="9" fill="#2c2c54"/>
+          <circle cx="130" cy="102" r="3.5" fill="#fff"/>
+          <circle cx="125" cy="108" r="1.5" fill="#fff"/>
+          <!-- happy smile -->
+          <path d="M88 132 Q105 148 122 132" stroke="#6b0a2c" stroke-width="4" fill="#ff9aad" stroke-linecap="round"/>
+          <!-- cheeks -->
+          <ellipse cx="72" cy="128" rx="10" ry="6" fill="#ff9aad" opacity=".75"/>
+          <ellipse cx="138" cy="128" rx="10" ry="6" fill="#ff9aad" opacity=".75"/>
+          <!-- little sparkle -->
+          <text x="158" y="72" font-size="14" fill="#ffd700">✨</text>
+        </svg>
+      </div>
+      <p class="q-prompt">What is this?</p>
+      <div class="options" data-correct="apple">
+        <button class="option" data-val="apple">apple</button>
+        <button class="option" data-val="banana">banana</button>
+        <button class="option" data-val="pear">pear</button>
+        <button class="option" data-val="grape">grape</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUESTION 2 ===== -->
+  <section class="screen" id="screen-q1" aria-label="Question 2">
+    <div class="q-card">
+      <div class="q-progress">
+        <span class="q-dot done"></span>
+        <span class="q-dot current"></span>
+        <span class="q-dot"></span>
+      </div>
+      <div class="q-image-wrap">
+        <svg class="q-image" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Picture of a dog" role="img">
+          <!-- waggy tail -->
+          <path d="M162 110 Q185 95 182 75 Q178 88 165 100 Z" fill="#a0714a"/>
+          <!-- body (behind head) -->
+          <ellipse cx="100" cy="160" rx="52" ry="28" fill="#b88255"/>
+          <!-- left paw -->
+          <ellipse cx="72" cy="180" rx="12" ry="7" fill="#8a5c35"/>
+          <!-- right paw -->
+          <ellipse cx="128" cy="180" rx="12" ry="7" fill="#8a5c35"/>
+          <!-- left floppy ear -->
+          <path d="M48 62 Q18 58 24 110 Q34 142 60 118 Q58 85 55 68 Z" fill="#a0714a" stroke="#6a4422" stroke-width="1.5"/>
+          <!-- right floppy ear -->
+          <path d="M152 62 Q182 58 176 110 Q166 142 140 118 Q142 85 145 68 Z" fill="#a0714a" stroke="#6a4422" stroke-width="1.5"/>
+          <!-- ear inner -->
+          <path d="M45 92 Q38 105 48 122 Q58 112 55 98 Z" fill="#f4c9a5"/>
+          <path d="M155 92 Q162 105 152 122 Q142 112 145 98 Z" fill="#f4c9a5"/>
+          <!-- head -->
+          <ellipse cx="100" cy="108" rx="60" ry="52" fill="#d4a373" stroke="#6a4422" stroke-width="2"/>
+          <!-- white muzzle patch -->
+          <ellipse cx="100" cy="130" rx="36" ry="24" fill="#fdf6e3"/>
+          <!-- nose -->
+          <ellipse cx="100" cy="115" rx="11" ry="8" fill="#1a1a1a"/>
+          <ellipse cx="96" cy="113" rx="3" ry="2" fill="#fff" opacity=".8"/>
+          <!-- mouth center line -->
+          <path d="M100 123 L100 132" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- happy smile curves -->
+          <path d="M85 130 Q92 142 100 132" stroke="#1a1a1a" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+          <path d="M100 132 Q108 142 115 130" stroke="#1a1a1a" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+          <!-- tongue -->
+          <ellipse cx="100" cy="144" rx="9" ry="7" fill="#ff6b9d"/>
+          <path d="M96 141 Q100 148 104 141" stroke="#c73a6c" stroke-width="1.5" fill="none"/>
+          <!-- left eye -->
+          <ellipse cx="78" cy="96" rx="10" ry="11" fill="#2c2c54"/>
+          <circle cx="76" cy="92" r="4" fill="#fff"/>
+          <circle cx="80" cy="100" r="2" fill="#fff"/>
+          <!-- right eye -->
+          <ellipse cx="122" cy="96" rx="10" ry="11" fill="#2c2c54"/>
+          <circle cx="120" cy="92" r="4" fill="#fff"/>
+          <circle cx="124" cy="100" r="2" fill="#fff"/>
+          <!-- rosy cheeks -->
+          <ellipse cx="58" cy="118" rx="10" ry="6" fill="#ff9aad" opacity=".7"/>
+          <ellipse cx="142" cy="118" rx="10" ry="6" fill="#ff9aad" opacity=".7"/>
+          <!-- little forehead spot -->
+          <ellipse cx="100" cy="68" rx="14" ry="9" fill="#8a5c35" opacity=".5"/>
+          <!-- sparkle -->
+          <text x="168" y="60" font-size="12" fill="#ffd700">✦</text>
+        </svg>
+      </div>
+      <p class="q-prompt">What is this?</p>
+      <div class="options" data-correct="dog">
+        <button class="option" data-val="cat">cat</button>
+        <button class="option" data-val="mouse">mouse</button>
+        <button class="option" data-val="dog">dog</button>
+        <button class="option" data-val="bird">bird</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUESTION 3 ===== -->
+  <section class="screen" id="screen-q2" aria-label="Question 3">
+    <div class="q-card">
+      <div class="q-progress">
+        <span class="q-dot done"></span>
+        <span class="q-dot done"></span>
+        <span class="q-dot current"></span>
+      </div>
+      <div class="q-image-wrap">
+        <svg class="q-image" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Picture of an eye" role="img">
+          <!-- cute face "background" -->
+          <circle cx="100" cy="105" r="80" fill="#f0f7ff"/>
+          <!-- main eye outline -->
+          <path d="M18 105 Q100 28 182 105 Q100 182 18 105 Z" fill="#ffffff" stroke="#3a3a5c" stroke-width="4"/>
+          <!-- iris outer ring -->
+          <circle cx="100" cy="105" r="48" fill="#84d4f0"/>
+          <!-- iris mid -->
+          <circle cx="100" cy="105" r="40" fill="#3ab0d9"/>
+          <!-- iris inner -->
+          <circle cx="100" cy="105" r="30" fill="#1c7fa8"/>
+          <!-- starburst ring -->
+          <circle cx="100" cy="105" r="24" fill="#0d5f82"/>
+          <!-- pupil -->
+          <circle cx="100" cy="105" r="14" fill="#0a0a1f"/>
+          <!-- big upper sparkle -->
+          <ellipse cx="88" cy="90" rx="10" ry="14" fill="#ffffff"/>
+          <!-- small side sparkle -->
+          <circle cx="116" cy="118" r="4.5" fill="#ffffff"/>
+          <!-- tiny sparkle -->
+          <circle cx="108" cy="100" r="2" fill="#ffffff" opacity=".8"/>
+          <!-- upper long lashes -->
+          <path d="M30 85 Q24 68 32 58" stroke="#3a3a5c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M52 72 Q46 54 56 45" stroke="#3a3a5c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M76 66 Q72 48 80 40" stroke="#3a3a5c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M124 66 Q128 48 120 40" stroke="#3a3a5c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M148 72 Q154 54 144 45" stroke="#3a3a5c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <path d="M170 85 Q176 68 168 58" stroke="#3a3a5c" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <!-- tiny sparkle stars -->
+          <text x="52" y="55" font-size="10" fill="#ffd700">✦</text>
+          <text x="145" y="50" font-size="10" fill="#ffd700">✦</text>
+          <!-- left rosy cheek -->
+          <ellipse cx="30" cy="155" rx="16" ry="9" fill="#ff9aad" opacity=".8"/>
+          <!-- right rosy cheek -->
+          <ellipse cx="170" cy="155" rx="16" ry="9" fill="#ff9aad" opacity=".8"/>
+          <!-- happy smile -->
+          <path d="M62 162 Q100 182 138 162" stroke="#3a3a5c" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <!-- smile tickle dimples -->
+          <circle cx="72" cy="170" r="2.5" fill="#3a3a5c"/>
+          <circle cx="128" cy="170" r="2.5" fill="#3a3a5c"/>
+          <!-- little "👁" sparkle near iris -->
+          <text x="82" y="72" font-size="11" fill="#ffd700">★</text>
+        </svg>
+      </div>
+      <p class="q-prompt">What is this?</p>
+      <div class="options" data-correct="eye">
+        <button class="option" data-val="hand">hand</button>
+        <button class="option" data-val="foot">foot</button>
+        <button class="option" data-val="nose">nose</button>
+        <button class="option" data-val="eye">eye</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== VICTORY ===== -->
+  <section class="screen" id="screen-victory" aria-label="Congratulations!">
+    <div class="stars" aria-hidden="true">⭐ ⭐ ⭐</div>
+    <div class="victory-emoji" aria-hidden="true">🎉</div>
+    <h1 class="title">Great job, friend!</h1>
+    <p class="subtitle">You know all the words! 🌟</p>
+    <button class="btn btn-secondary" id="btn-restart" type="button">Play again 🔄</button>
+  </section>
+
+</div>
+
+<script>
+  (function () {
+    var screens = ["screen-home", "screen-q0", "screen-q1", "screen-q2", "screen-victory"];
+    var currentIdx = 0;
+
+    function showScreen(id) {
+      screens.forEach(function (sid, i) {
+        var el = document.getElementById(sid);
+        if (!el) return;
+        if (sid === id) {
+          el.classList.add("is-active");
+          currentIdx = i;
+        } else {
+          el.classList.remove("is-active");
+        }
+      });
+      // speak the answer's word each screen change so kids hear it
+      pronounceWordForScreen(id);
+    }
+
+    function pronounceWordForScreen(id) {
+      if (!("speechSynthesis" in window)) return;
+      var map = {
+        "screen-q0": "apple",
+        "screen-q1": "dog",
+        "screen-q2": "eye"
+      };
+      var word = map[id];
+      if (!word) return;
+      try {
+        var u = new SpeechSynthesisUtterance(word);
+        u.lang = "en-US";
+        u.rate = 0.85;
+        u.pitch = 1.3;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      } catch (e) { /* ignore */ }
+    }
+
+    // Start button
+    document.getElementById("btn-start").addEventListener("click", function () {
+      showScreen("screen-q0");
+    });
+
+    // Restart button
+    document.getElementById("btn-restart").addEventListener("click", function () {
+      // Clear any marked options from question cards
+      document.querySelectorAll(".options").forEach(function (container) {
+        container._answered = false;                      // reset the closure flag
+        document.querySelectorAll(".option").forEach(function (opt) {
+          opt.classList.remove("is-wrong", "is-correct");
+          opt.disabled = false;
+          var mark = opt.querySelector(".mark");
+          if (mark) mark.remove();
+        });
+      });
+      showScreen("screen-home");
+    });
+
+    // Option click delegation — each question's .options container
+    document.querySelectorAll(".options").forEach(function (container) {
+      var correct = container.getAttribute("data-correct");
+      container._answered = false;
+
+      container.addEventListener("click", function (e) {
+        if (container._answered) return;
+        var btn = e.target.closest(".option");
+        if (!btn || btn.disabled) return;
+
+        var val = btn.getAttribute("data-val");
+        var mark = document.createElement("span");
+        mark.className = "mark";
+
+        if (val === correct) {
+          // CORRECT
+          container._answered = true;
+          btn.classList.add("is-correct");
+          btn.disabled = true;
+          mark.textContent = "✓";
+          btn.appendChild(mark);
+
+          // disable sibling wrong options so only correct is clickable going forward
+          container.querySelectorAll(".option").forEach(function (ob) {
+            if (ob !== btn) ob.disabled = true;
+          });
+
+          // speak the word for extra reinforcement
+          if ("speechSynthesis" in window) {
+            try {
+              var u = new SpeechSynthesisUtterance(correct);
+              u.lang = "en-US"; u.rate = 0.85; u.pitch = 1.3;
+              window.speechSynthesis.speak(u);
+            } catch (e) {}
+          }
+
+          // advance after a cheerful pause
+          setTimeout(function () {
+            if (container.parentElement.parentElement.id === "screen-q2") {
+              burstConfetti();
+              showScreen("screen-victory");
+            } else if (container.parentElement.parentElement.id === "screen-q1") {
+              showScreen("screen-q2");
+            } else {
+              showScreen("screen-q1");
+            }
+          }, 900);
+
+        } else {
+          // WRONG
+          btn.classList.add("is-wrong");
+          btn.disabled = true;
+          mark.textContent = "✗";
+          btn.appendChild(mark);
+
+          // shake effect already in CSS; keep options visible, just disabled
+          // so kid can still see all options and try next time
+        }
+      });
+    });
+
+    function burstConfetti() {
+      var emojis = ["🎉","⭐","✨","🎈","🎊","💖","🌟","🌈"];
+      var app = document.querySelector(".app");
+      for (var i = 0; i < 40; i++) {
+        var c = document.createElement("span");
+        c.className = "confetti";
+        c.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        c.style.left = (Math.random() * 100) + "%";
+        c.style.animationDuration = (2 + Math.random() * 2) + "s";
+        c.style.animationDelay = (Math.random() * 0.6) + "s";
+        document.body.appendChild(c);
+        (function (el, delay) {
+          setTimeout(function () { el.remove(); }, (2 + 2) * 1000 + delay);
+        })(c, Math.random() * 600);
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>
